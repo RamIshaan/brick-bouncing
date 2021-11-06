@@ -2,7 +2,7 @@
 function buildGameUI(width, height, numRows) {
     buildWall(width, height, numRows);
     buildBar(145, 180, 60, 8);
-    buildBall(175, 160, 10);
+    buildBall(175, 170, 10);
     document.onkeydown = _getKeyPressed;
 }
 
@@ -64,6 +64,7 @@ function buildBar(x, y, width, height) {
 function buildBall(cx, cy, r) {
     var svgElement = _getSVGBox();
     var circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("id", "ball");
     circle.setAttribute("cx", cx);
     circle.setAttribute("cy", cy);
     circle.setAttribute("r", r);
@@ -80,12 +81,21 @@ function _getBar(){
     return document.getElementById("bar");
 }
 
+function _getBall(){
+    return document.getElementById("ball");
+}
+
+
+
 function _getKeyPressed(event){
     if(event.keyCode == 37){
         _moveBarLeft();
     }
     if(event.keyCode == 39){
         _moveBarRight();
+    }
+    if(event.keyCode == 32){
+        setInterval(_moveBall, 50);
     }
 
 }
@@ -106,4 +116,17 @@ function _moveBarRight(){
     var newX = newXEnd-width;
     bar.setAttribute("x", newX);
 
+}
+
+function _moveBall(){
+    var ball = _getBall();
+    var oldCy = parseInt(ball.getAttribute("cy"));
+    var r = parseInt(ball.getAttribute("r"));
+    var newCy = oldCy-r;
+    if (newCy <= 0) {
+        ball.setAttribute("cy", 200);
+    } 
+    else {
+        ball.setAttribute("cy", newCy);
+    }
 }
