@@ -3,6 +3,7 @@ function buildGameUI(width, height, numRows) {
     buildWall(width, height, numRows);
     buildBar(145, 180, 60, 8);
     buildBall(175, 160, 10);
+    document.onkeydown = _getKeyPressed;
 }
 
 function buildWall(width, height, numRows) {
@@ -51,6 +52,7 @@ function buildBar(x, y, width, height) {
     var svgElement = _getSVGBox();
     var rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     // confif rectangle properties
+    rect.setAttribute("id", "bar");
     rect.setAttribute("x", x);
     rect.setAttribute("y", y);
     rect.setAttribute("width", width);
@@ -72,4 +74,25 @@ function buildBall(cx, cy, r) {
 // helper functions
 function _getSVGBox(){
     return document.getElementsByTagName("svg")[0];
+}
+
+function _getBar(){
+    return document.getElementById("bar");
+}
+
+function _getKeyPressed(event){
+    if(event.keyCode == 37){
+        _moveBarLeft();
+    }
+    if(event.keyCode == 39){
+        console.log("right arrow pressed");
+    }
+
+}
+
+function _moveBarLeft(){
+    var bar = _getBar();
+    var x = parseInt(bar.getAttribute("x"));
+    var newXPosition = Math.max(0, x-10);
+    bar.setAttribute("x", newXPosition);
 }
