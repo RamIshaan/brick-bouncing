@@ -85,7 +85,7 @@ function _getKeyPressed(event){
         _moveBarLeft();
     }
     if(event.keyCode == 39){
-        console.log("right arrow pressed");
+        _moveBarRight();
     }
 
 }
@@ -95,4 +95,15 @@ function _moveBarLeft(){
     var x = parseInt(bar.getAttribute("x"));
     var newXPosition = Math.max(0, x-10);
     bar.setAttribute("x", newXPosition);
+}
+
+function _moveBarRight(){
+    var bar = _getBar();
+    var x = parseInt(bar.getAttribute("x"));
+    var width = parseInt(bar.getAttribute("width"));
+    var xEnd = x+width;
+    var newXEnd = Math.min(325, xEnd+10);
+    var newX = newXEnd-width;
+    bar.setAttribute("x", newX);
+
 }
