@@ -71,6 +71,7 @@ class Game {
         newRect.setAttribute("width", this.brickWidth);
         newRect.setAttribute("height", this.brickHeight);
         newRect.setAttribute("fill", this.brickColor);
+        newRect.setAttribute("class", "brick");
         this.svgElement.appendChild(newRect);
     }
 
@@ -143,16 +144,56 @@ class Game {
         else {
             this.ball.setAttribute("cy", newCy);
         }
+
+        this.collideBricks();
+    }
+
+    getBallCoordinates(){
+        var cx = parseInt(this.ball.getAttribute("cx"));
+        var cy = parseInt(this.ball.getAttribute("cy"));
+        var cxLow = cx - this.ballRadius;
+        var cxHigh = cx + this.ballRadius;
+        var cyLow = cy - this.ballRadius;
+        var cyHigh = cy + this.ballRadius;
+        return [cxLow, cxHigh, cyLow, cyHigh];
+    }
+
+    collideBricks(){
+        var coordinates = this.getBallCoordinates();
+        var cxLow = coordinates[0];
+        var cxHigh = coordinates[1];
+        var cyLow = coordinates[2];
+        var cyHigh = coordinates[3];
+
+        var allBricks = document.getElementsByClassName("brick");
+        for(let brickNum = 0; brickNum < allBricks.length; brickNum++) {
+            var brick = allBricks[brickNum];
+            var xLow = parseInt(brick.getAttribute("x"));
+            var xHigh = xLow + this.brickWidth;
+            var yLow = parseInt(brick.getAttribute("y"));
+            var yHigh = yLow + this.brickHeight;
+            if(this.collides(xLow, xHigh, yLow, yHigh, cxLow, cxHigh, cyLow, cyHigh)){
+                console.log("Ball hitting the brick");
+            }
+        }
+    }
+
+    collideLeftWall(){
+
+    }
+
+    collideRightWall(){}
+
+    collideTopWall(){}
+
+    collideBottomWall(){}
+
+    collideGameBar(){}
+
+    collides(xLow, xHigh, yLow, yHigh, cxLow, cxHigh, cyLow, cyHigh){
+        var xInRange = (cxLow >= xLow && cxLow <= xHigh) || (cxHigh >= xLow && cyHigh <= xHigh);
+        var yInRange = (cyLow >= yLow && cyLow <= yHigh) || (cyHigh >= yLow && cyHigh <= yHigh);
+        return xInRange && yInRange;
     }
 
 }
-
-
-
-
-
-// helper functions
-
-
-
-
