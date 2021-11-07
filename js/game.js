@@ -13,7 +13,7 @@ class Game {
         
         this.barWidth = 2*this.brickWidth;
         this.barHeight = 10;
-        this.barShiftBy = 10;
+        this.barShiftBy = 15;
         this.barColor = "white";
 
         this.ballColor = "red";
@@ -28,7 +28,7 @@ class Game {
         this.ball = null;
 
         this.gameInProgress = false;
-        this.gameProgressInterval = 30;
+        this.gameProgressInterval = 20;
 
         this.buildGameUI();
         // TODO: undertsand JS closures better
@@ -148,16 +148,59 @@ class Game {
 
     play(){
         this.moveBall(); 
-        if(this.collideBricks() 
-            || this.collideGameBar() 
-            || this.collideTopWall()
-            || this.collideLeftWall()
-            || this.collideRightWall()){
-            
+        if (this.collideBricks()) {
+            this.ballHitBrick();
+        } else if (this.collideTopWall()) {
+            this.ballHitTopWall();
+        } else if(this.collideLeftWall() || this.collideRightWall()){
                 this.changeBallDirection();
+        } else if ( this.collideGameBar()) {
+            this.ballHitsGameBar();   
         }
         else if (this.collideBottomWall()) {
             this.stop();
+        }
+    }
+
+    ballHitBrick() {
+        if (this.ballDirection == "up") {
+            this.ballDirection = "down";
+        } else if (this.ballDirection == "lup") {
+            this.ballDirection = "rdown";
+        } else if (this.ballDirection == "rup") {
+            this.ballDirection = "ldown";
+        } else {
+            ;
+        }
+    }    
+
+    ballHitTopWall() {
+        if (this.ballDirection == "up") {
+            this.ballDirection = "down";
+        } else if (this.ballDirection == "rup") {
+            this.ballDirection = "rdown";
+        } else if (this.ballDirection == "lup") {
+            this.ballDirection = "ldown";
+        }
+    }
+
+    ballHitsGameBar() {
+        if (this.ballDirection == "ldown") {
+            this.ballDirection = "lup";
+        } else if (this.ballDirection == "rdown") {
+            this.ballDirection = "rup";
+        } else if (this.ballDirection == "down") {
+            var barCenter = parseInt(this.bar.getAttribute("x")) + this.barWidth/2;
+            var ballCenter = parseInt(this.ball.getAttribute("cx"));
+            var deflection = barCenter - ballCenter;
+
+            if (Math.abs(deflection) <= 3) {
+                this.changeBallDirection();
+            } else if (deflection > 3) {
+                this.ballDirection = "lup"; 
+            } else {
+                this.ballDirection = "rup";
+            }
         }
     }
 
@@ -318,6 +361,16 @@ class Game {
         }
         else {
             return false;
+        }
+    }
+
+    changeDirectionWhileHittingGameBar() {
+        if (this.ballDirection == "down") {
+
+        } else if (this.ballDirection == "ldown") {
+
+        } else if (this.ballDirection == "rdown") {
+
         }
     }
 
