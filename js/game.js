@@ -1,4 +1,94 @@
 
+class Game {
+
+    constructor(width, height) {
+        this.boardWidth = width;
+        this.boardHeight = height;
+        this.brickHeight = 30;
+        this.brickWidth = 50;
+        this.brickColor = "orange";
+        this.brickGap = 5;
+        this.numRows = 4;
+        this.barWidth = 2*this.brickWidth;
+        this.barHeight = 10;
+        this.barColor = "white";
+        this.ballColor = "red";
+        this.ballRadius = 12;
+        this.svgElement = document.getElementsByTagName("svg")[0];
+
+        this.buildGameUI();
+    }
+
+    start() {}
+    pause() {}
+
+    buildGameUI(){
+        this.buildWall();
+        this.buildBar();
+        this.buildBall();
+    }
+
+    buildWall() {
+        /**
+         * First row:
+         *  (0,0) B G (55,0) B G (110, 0) B G (165, 0) B G 
+         */
+         var x = 0;
+         var y = -(this.brickHeight+this.brickGap);
+         for(let rowNum = 1; rowNum <= this.numRows;  rowNum++)
+         {   
+            y = y+this.brickHeight+this.brickGap;
+            x = 0;
+            for(;x <= this.boardWidth; x=x+this.brickWidth+this.brickGap){
+                this.addBrick( x, y);
+            }
+         }
+    }
+    
+    addBrick( x, y){
+        var newRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        newRect.setAttribute("x", x );
+        newRect.setAttribute("y", y);
+        newRect.setAttribute("width", this.brickWidth);
+        newRect.setAttribute("height", this.brickHeight);
+        newRect.setAttribute("fill", this.brickColor);
+        this.svgElement.appendChild(newRect);
+    }
+
+    buildBar() {
+       
+        var x  = this.boardWidth/2 - this.barWidth/2;
+        var y = this.boardHeight - 2*this.barHeight;
+
+        var rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        // confif rectangle properties
+        rect.setAttribute("id", "bar");
+        rect.setAttribute("x", x);
+        rect.setAttribute("y", y);
+        rect.setAttribute("width", this.barWidth);
+        rect.setAttribute("height", this.barHeight);
+        rect.setAttribute("fill", this.barColor);
+        this.svgElement.appendChild(rect);
+    }
+
+    buildBall() {
+        var cx = this.boardWidth/2;
+        var cy = this.boardHeight - 2*this.barHeight - this.ballRadius;
+        var circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("id", "ball");
+        circle.setAttribute("cx", cx);
+        circle.setAttribute("cy", cy);
+        circle.setAttribute("r", this.ballRadius);
+        circle.setAttribute("fill", this.ballColor);
+        this.svgElement.appendChild(circle);
+    }
+
+}
+
+
+
+
+
 function buildGameUI(width, height, numRows) {
     buildWall(width, height, numRows);
     buildBar(145, 180, 60, 8);
@@ -6,71 +96,13 @@ function buildGameUI(width, height, numRows) {
     document.onkeydown = _getKeyPressed;
 }
 
-function buildWall(width, height, numRows) {
-    /**
-     * this function builds a wall with bricks arranged in numRows
-     */
-    var svgElement = document.getElementsByTagName("svg")[0];
-    
-    /**
-     * First row:
-     *  (0,0) B G (55,0) B G (110, 0) B G (165, 0) B G 
-     */
-     var x = 0
-     var y = -35
-     for(letRowNum = 1;letRowNum <= 3;letRowNum++)
-     {
-         
-        y = y+35;
-        x = 0;
-        for(;x <= 325; x=x+55)
-            {addBrick(svgElement, x, y);
-            }
-     }
-        
-         
-     
-      
-    
-
-}
-
-function addBrick(svgElement, x, y){
-    var brickWidth = 50;
-    var brickHeight = 30;
-    var newRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    newRect.setAttribute("x", x );
-    newRect.setAttribute("y", y);
-    newRect.setAttribute("width",brickWidth);
-    newRect.setAttribute("height",brickHeight);
-    newRect.setAttribute("fill", "orange");
-    svgElement.appendChild(newRect);
-}
 
 
-function buildBar(x, y, width, height) {
-    var svgElement = _getSVGBox();
-    var rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    // confif rectangle properties
-    rect.setAttribute("id", "bar");
-    rect.setAttribute("x", x);
-    rect.setAttribute("y", y);
-    rect.setAttribute("width", width);
-    rect.setAttribute("height", height);
-    rect.setAttribute("fill", "white");
-    svgElement.appendChild(rect);
-}
 
-function buildBall(cx, cy, r) {
-    var svgElement = _getSVGBox();
-    var circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    circle.setAttribute("id", "ball");
-    circle.setAttribute("cx", cx);
-    circle.setAttribute("cy", cy);
-    circle.setAttribute("r", r);
-    circle.setAttribute("fill", "white");
-    svgElement.appendChild(circle);
-}
+
+
+
+
 
 // helper functions
 function _getSVGBox(){
