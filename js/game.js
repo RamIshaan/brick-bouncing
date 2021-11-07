@@ -18,6 +18,9 @@ class Game {
 
         this.ballColor = "red";
         this.ballRadius = 12;
+        this.ballMoveBy = this.ballRadius / 2;
+        this.ballDirection = "up";
+        this.ballTimer = null;
 
         // game elements
         this.svgElement = document.getElementsByTagName("svg")[0];
@@ -35,11 +38,16 @@ class Game {
     start() {
         if (!this.gameInProgress) {
             this.gameInProgress = true;
-            setInterval(this.moveBall.bind(this), this.gameProgressInterval);
+            this.ballTimer = window.setInterval(this.play.bind(this), this.gameProgressInterval);
         }
     }
 
-    pause() {}
+    stop() {
+        if (this.gameInProgress) {
+            this.gameInProgress = false;
+            window.clearInterval(this.ballTimer);
+        }
+    }
 
     buildGameUI(){
         this.buildWall();
@@ -66,6 +74,7 @@ class Game {
     
     addBrick( x, y){
         var newRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        newRect.setAttribute("id", new Date().getTime()+"_"+x);
         newRect.setAttribute("x", x );
         newRect.setAttribute("y", y);
         newRect.setAttribute("width", this.brickWidth);
@@ -120,32 +129,82 @@ class Game {
     }
 
     moveBarLeft(){
-        var x = parseInt(this.bar.getAttribute("x"));
-        var newXPosition = Math.max(0, x-this.barShiftBy);
-        this.bar.setAttribute("x", newXPosition);
+        if (this.gameInProgress) {
+            var x = parseInt(this.bar.getAttribute("x"));
+            var newXPosition = Math.max(0, x-this.barShiftBy);
+            this.bar.setAttribute("x", newXPosition);
+        }
     }
 
     moveBarRight(){
-        var x = parseInt(this.bar.getAttribute("x"));
-        var xEnd = x + this.barWidth;
-        var newXEnd = Math.min(this.boardWidth, xEnd + this.barShiftBy);
-        var newX = newXEnd - this.barWidth;
-        this.bar.setAttribute("x", newX);
-    
+        if (this.gameInProgress) {
+            var x = parseInt(this.bar.getAttribute("x"));
+            var xEnd = x + this.barWidth;
+            var newXEnd = Math.min(this.boardWidth, xEnd + this.barShiftBy);
+            var newX = newXEnd - this.barWidth;
+            this.bar.setAttribute("x", newX);
+        }
+    }
+
+    play(){
+        this.moveBall(); 
+        if(this.collideBricks() 
+            || this.collideGameBar() 
+            || this.collideTopWall()
+            || this.collideLeftWall()
+            || this.collideRightWall()){
+            
+                this.changeBallDirection();
+        }
+        else if (this.collideBottomWall()) {
+            this.stop();
+        }
+    }
+
+    changeBallDirection(){
+        if(this.ballDirection == "up") {
+            this.ballDirection = "down";
+        } else if (this.ballDirection == "down") {
+            this.ballDirection = "up";
+        } else if (this.ballDirection == "lup") {
+            this.ballDirection = "rup";
+        } else if (this.ballDirection == "rup") {
+            this.ballDirection = "lup";
+        }else if (this.ballDirection == "ldown") {
+            this.ballDirection = "rdown";
+        }else if (this.ballDirection == "rdown") {
+            this.ballDirection = "ldown";
+        }
     }
 
     moveBall(){
-        
+        var oldCx = parseInt(this.ball.getAttribute("cx"));
         var oldCy = parseInt(this.ball.getAttribute("cy"));
-        var newCy = oldCy - this.ballRadius;
-        if (newCy <= 0) {
-            this.ball.setAttribute("cy", this.boardHeight);
-        } 
-        else {
-            this.ball.setAttribute("cy", newCy);
+        var newCx = oldCx;
+        var newCy = oldCy;
+        if(this.ballDirection == "lup") {
+            newCx = oldCx - this.ballMoveBy;
+            newCy = oldCy - this.ballMoveBy;
+        } else if (this.ballDirection == "ldown") {
+            newCx = oldCx - this.ballMoveBy;
+            newCy = oldCy + this.ballMoveBy;
+        } else if (this.ballDirection == "rup") {
+            newCx = oldCx + this.ballMoveBy;
+            newCy = oldCy - this.ballMoveBy;
+        } else if (this.ballDirection == "rdown") {
+            newCx = oldCx + this.ballMoveBy;
+            newCy = oldCy + this.ballMoveBy;
+        } else if (this.ballDirection == "up") {
+            newCx = oldCx;
+            newCy = oldCy - this.ballMoveBy;
+        } else if (this.ballDirection == "down") {
+            newCx = oldCx;
+            newCy = oldCy + this.ballMoveBy;
         }
 
-        this.collideBricks();
+        // TODO: ball border checks
+        this.ball.setAttribute("cx", newCx);
+        this.ball.setAttribute("cy", newCy);
     }
 
     getBallCoordinates(){
@@ -165,6 +224,8 @@ class Game {
         var cyLow = coordinates[2];
         var cyHigh = coordinates[3];
 
+        var bricksHit = false;
+
         var allBricks = document.getElementsByClassName("brick");
         for(let brickNum = 0; brickNum < allBricks.length; brickNum++) {
             var brick = allBricks[brickNum];
@@ -173,25 +234,95 @@ class Game {
             var yLow = parseInt(brick.getAttribute("y"));
             var yHigh = yLow + this.brickHeight;
             if(this.collides(xLow, xHigh, yLow, yHigh, cxLow, cxHigh, cyLow, cyHigh)){
-                console.log("Ball hitting the brick");
+                brick.parentNode.removeChild(brick);
+                bricksHit = true;
             }
         }
+
+        return bricksHit;
     }
 
     collideLeftWall(){
+        var coordinates = this.getBallCoordinates();
+        var cxLow = coordinates[0];
+        var cxHigh = coordinates[1];
+        var cyLow = coordinates[2];
+        var cyHigh = coordinates[3];
 
+        var xLow = -this.ballRadius;
+        var xHigh = 0;
+        var yLow = 0;
+        var yHigh = this.boardHeight;
+
+        return this.collides(xLow, xHigh, yLow, yHigh, cxLow, cxHigh, cyLow, cyHigh);
     }
 
-    collideRightWall(){}
+    collideRightWall(){
+        var coordinates = this.getBallCoordinates();
+        var cxLow = coordinates[0];
+        var cxHigh = coordinates[1];
+        var cyLow = coordinates[2];
+        var cyHigh = coordinates[3];
 
-    collideTopWall(){}
+        var xLow = this.boardWidth;
+        var xHigh = this.boardWidth + this.ballRadius;
+        var yLow = 0;
+        var yHigh = this.boardHeight;
 
-    collideBottomWall(){}
+        return this.collides(xLow, xHigh, yLow, yHigh, cxLow, cxHigh, cyLow, cyHigh);
+    }
 
-    collideGameBar(){}
+    collideTopWall(){
+        var coordinates = this.getBallCoordinates();
+        var cxLow = coordinates[0];
+        var cxHigh = coordinates[1];
+        var cyLow = coordinates[2];
+        var cyHigh = coordinates[3];
+
+        var xLow = 0;
+        var xHigh = this.boardWidth;
+        var yLow = -this.ballRadius;
+        var yHigh = 0;
+
+        return this.collides(xLow, xHigh, yLow, yHigh, cxLow, cxHigh, cyLow, cyHigh);
+    }
+
+    collideBottomWall(){
+        var coordinates = this.getBallCoordinates();
+        var cxLow = coordinates[0];
+        var cxHigh = coordinates[1];
+        var cyLow = coordinates[2];
+        var cyHigh = coordinates[3];
+
+        var xLow = 0;
+        var xHigh = this.boardWidth;
+        var yLow = this.boardHeight;
+        var yHigh = this.boardHeight + this.ballRadius;
+
+        return this.collides(xLow, xHigh, yLow, yHigh, cxLow, cxHigh, cyLow, cyHigh);
+    }
+
+    collideGameBar(){
+        var coordinates = this.getBallCoordinates();
+        var cxLow = coordinates[0];
+        var cxHigh = coordinates[1];
+        var cyLow = coordinates[2];
+        var cyHigh = coordinates[3];
+
+        var xLow = parseInt(this.bar.getAttribute("x"));
+        var xHigh = xLow + this.barWidth;
+        var yLow = parseInt(this.bar.getAttribute("y"));
+        var yHigh = yLow + this.barHeight;
+        if(this.collides(xLow, xHigh, yLow, yHigh, cxLow, cxHigh, cyLow, cyHigh)){
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
     collides(xLow, xHigh, yLow, yHigh, cxLow, cxHigh, cyLow, cyHigh){
-        var xInRange = (cxLow >= xLow && cxLow <= xHigh) || (cxHigh >= xLow && cyHigh <= xHigh);
+        var xInRange = (cxLow >= xLow && cxLow <= xHigh) || (cxHigh >= xLow && cxHigh <= xHigh);
         var yInRange = (cyLow >= yLow && cyLow <= yHigh) || (cyHigh >= yLow && cyHigh <= yHigh);
         return xInRange && yInRange;
     }
